@@ -2,7 +2,8 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var exphbs = require('express-handlebars');
 var mongoose = require('mongoose');
-var port = process.env.PORT || 4000;
+// var routes = require('./controllers/recipes_controller.js');
+var port = process.env.PORT || 3000;
 
 var Recipe = require('./models/recipe.js');
 var Comment = require('./models/comment.js');
@@ -16,6 +17,7 @@ var app = express();
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static('public'));
+// app.use('/', routes);
 
 
 app.engine("handlebars", exphbs({ defaultLayout: "main" }));
@@ -41,8 +43,21 @@ app.listen(port, function(){
 });
 
 app.get("/", function(req, res) {
-  res.send("Hello world");
+
+    Recipe.find({}, function(err, doc){
+        if(err){
+            console.log(err);
+        }else{
+            var hbsRecipeObj = {
+                title: doc.title,
+                link: doc.link
+            };
+            res.render('index', hbsRecipeObj);
+        }
+    });
+  // res.send("Hello world");
 });
+
 
 app.get("/scrape", function(req, res) {
 
