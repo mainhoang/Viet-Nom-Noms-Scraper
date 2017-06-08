@@ -14,10 +14,13 @@ mongoose.Promise = Promise;
 
 var app = express();
 
-app.use(bodyParser.urlencoded({
-	extended: false
-}));
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static('public'));
+
+
+app.engine("handlebars", exphbs({ defaultLayout: "main" }));
+app.set("view engine", "handlebars");
+
 
 mongoose.connect('mongodb://localhost/vietNomNomsScraper');
 var db = mongoose.connection;
@@ -28,6 +31,10 @@ db.on('error', function(err){
 db.once('open', function(){
 	console.log('Mongoose GOOD!');
 });
+
+
+
+
 
 app.listen(port, function(){
 	console.log('LISTENING: ', port);
@@ -40,10 +47,10 @@ app.get("/", function(req, res) {
 app.get("/scrape", function(req, res) {
 
     request("http://www.vietworldkitchen.com/blog/vietnamese-recipe-index.html", function(error, response, html) {
-
+        
         var $ = cheerio.load(html);
 
-        $("li").each(function(i, element) {
+        $(".entry-body > ul > li").each(function(i, element) {
             
       		var result = {};
 
