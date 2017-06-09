@@ -1,9 +1,52 @@
+<div class="modal fade" id="comment-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal-recipe"></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+				<div>
 
+					<p id="comment-display">
+						hello
+					</p>
+				</div>
+               	<input id="comment-input" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
 <div class="panel panel-default" id="recipe-display">
-	<div class="panel-heading">
-    <h3 class="panel-title">Panel title</h3>
-</div>
-<div class="panel-body">
-    <p>YO</p>
-</div>
+    <div class="panel-heading">
+        <h3 class="panel-title">Panel title</h3>
+    </div>
+    <div class="panel-body">
+        <div id="recipes-wrapper">
+            {{#each recipes}}
+            <div class="recipe-wrapper col-lg-12">
+                <p class="title pull-left">{{this.title}}</p>
+                {{#unless this.saved}}
+                <form class="pull-right" action="/save/{{this.id}}" method="POST">
+                    <button class="btn btn-default btn-danger" type="submit">Save</button>
+                </form>
+                {{/unless}} {{#if this.saved}}
+                {{!-- <form class="pull-right"> --}}
+                    
+                {{!-- </form> --}}
+                <form class="pull-right" action="/update/{{this.id}}" method="POST">
+                	<button class="comment-btn btn btn-default btn-danger pull-right" data-id="{{this.id}}" data-toggle="modal" data-target="#comment-modal" type="button">Comments</button>
+                    <button class="btn btn-default" type="submit">Delete</button>
+                </form>
+                {{/if}} {{!-- <a class="btn btn-primary btn-lg save-btn pull-right" data-id={{this.id}} href="/update/{{this.id}}">Save to Favorites</a> --}}
+            </div>
+            {{/each}}
+        </div>
+    </div>
 </div>

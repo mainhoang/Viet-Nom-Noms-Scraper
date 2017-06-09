@@ -1,6 +1,7 @@
 var express = require('express');
 var bodyParser = require('body-parser');
 var exphbs = require('express-handlebars');
+// var methodOverride =require('method-override');
 var mongoose = require('mongoose');
 // var routes = require('./controllers/recipes_controller.js');
 var port = process.env.PORT || 3000;
@@ -17,6 +18,7 @@ var app = express();
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static('public'));
+// app.use(methodOverride('_method'));
 // app.use('/', routes);
 
 
@@ -27,66 +29,65 @@ app.set("view engine", "handlebars");
 mongoose.connect('mongodb://localhost/vietNomNomsScraper');
 var db = mongoose.connection;
 
-db.on('error', function(err){
-	console.log("Mongoose ERROR: ", err);
+db.on('error', function(err) {
+    console.log("Mongoose ERROR: ", err);
 })
-db.once('open', function(){
-	console.log('Mongoose GOOD!');
+db.once('open', function() {
+	db.dropDatabase();
+    console.log('Mongoose GOOD!');
 });
 
 
 
 
 
-app.listen(port, function(){
-	console.log('LISTENING: ', port);
+app.listen(port, function() {
+    console.log('LISTENING: ', port);
 });
 
 app.get("/", function(req, res) {
-
-    Recipe.find({}, function(err, doc){
-        if(err){
+    Recipe.find({'saved': false}).exec(function(err, doc){
+    	if (err) {
             console.log(err);
-        }else{
+        } else {
+        	// console.log("HEREHEEHEHHE", doc);
+
             var hbsRecipeObj = {
-                title: doc.title,
-                link: doc.link
+                recipes: doc
             };
             res.render('index', hbsRecipeObj);
         }
     });
-  // res.send("Hello world");
 });
 
 
 app.get("/scrape", function(req, res) {
 
     request("http://www.vietworldkitchen.com/blog/vietnamese-recipe-index.html", function(error, response, html) {
-        
+
         var $ = cheerio.load(html);
 
         $(".entry-body > ul > li").each(function(i, element) {
-            
-      		var result = {};
 
-      		result.num = i;
+            var result = {};
+
+            result.num = i;
             result.title = $(this).text();
             result.link = $(this).children("a").attr("href");
 
             if (result.link && result.num > 23) {
 
-      			var entry = new Recipe(result);
+                var entry = new Recipe(result);
 
-      			entry.save(function(err, saved){
+                entry.save(function(err, saved) {
 
-      				if (error) {
+                    if (error) {
                         console.log(error);
-                    }
-                    else {
+                    } else {
                         console.log(saved);
                     }
 
-      			});
+                });
 
             }
 
@@ -94,14 +95,123 @@ app.get("/scrape", function(req, res) {
 
     });
 
-    res.send("Scrape Complete");
-
+    res.redirect('/');
+            
 });
 
+app.get("/recipes", function(req, res) {
+  	// Grab every doc in the Articles array
+  	Recipe.find({}, function(error, doc) {
+    // Log any errors
+    	if (error) {
+      		console.log(error);
+    	}
+    	// Or send the doc to the browser as a json object
+    	else {
+        	res.json(doc);
+    	}
+  	});
+});
 
+app.get("/recipes/:id", function(req, res) {
+  	// Using the id passed in the id parameter, prepare a query that finds the matching one in our db...
+  	Recipe.findOne({ "_id": req.params.id })
+  		// ..and populate all of the notes associated with it
+  		.populate("comment")
+  		// now, execute our query
+  		.exec(function(error, doc) {
+    		// Log any errors
+    		if (error) {
+      			console.log(error);
+    		}
+    		// Otherwise, send the doc to the browser as a json object
+    		else {
+      			res.json(doc);
+    		}
+  	});
+});
 
+app.post("/recipes/:id", function(req, res) {
+  // Create a new note and pass the req.body to the entry
+  var newComment = new Comment(req.body);
 
+  // And save the new note the db
+  newComment.save(function(error, doc) {
+    // Log any errors
+    console.log(doc);
+    if (error) {
+      console.log(error);
+    }
+    // Otherwise
+    else {
+      // Use the article id to find and update it's note
+      Recipe.findOneAndUpdate({ "_id": req.params.id }, { "comment": doc._id })
+      // Execute the above query
+      .exec(function(err, doc) {
+        // Log any errors
+        if (err) {
+          console.log(err);
+        }
+        else {
+          // Or send the document to the browser
+          res.send(doc);
+        }
+      });
+    }
+  });
+});
 
+app.get("/update/:id", function(req, res) {
+  	// Using the id passed in the id parameter, prepare a query that finds the matching one in our db...
+  	Recipe.findOne({ "_id": req.params.id })
+  		// ..and populate all of the notes associated with it
+  		.populate("comment")
+  		// now, execute our query
+  		.exec(function(error, doc) {
+    		// Log any errors
+    		if (error) {
+      			console.log(error);
+    		}
+    		// Otherwise, send the doc to the browser as a json object
+    		else {
+      			res.json(doc);
+    		}
+  	});
+});
+app.post('/save/:id', function(req, res){
+	Recipe.findOneAndUpdate({'_id': req.params.id}, {'saved': true})
+	.exec(function(err, doc){
+		if (err){
+			console.log(err);
+		}else{
+			// res.json(doc);
+			res.redirect("/");
+		}
+	});
+});
+app.post('/update/:id', function(req, res){
+	Recipe.findOneAndUpdate({'_id': req.params.id}, {'saved': false})
+	.exec(function(err, doc){
+		if (err){
+			console.log(err);
+		}else{
+			// res.json(doc);
+			res.redirect("/saved");
+		}
+	});
+});
 
+app.get("/saved", function(req, res){
+	Recipe.find({saved: true}).exec(function(err, doc){
+		if(err){
+			console.log(err)
+		}else{
+			var hbsRecipeObj = {
+				recipes: doc
+			};
+			res.render('index', hbsRecipeObj)
+		}
+	});
+});
 
 

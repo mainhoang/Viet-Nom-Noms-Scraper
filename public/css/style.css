@@ -1,0 +1,14 @@
+/*.save-btn {
+	position: relative;
+	float: right;
+	/*display: inline-block;
+}*/
+
+.title {
+	font-size: 20px;
+}
+
+.recipe-wrapper {
+	/*height: 0px;*/
+	border-bottom: 1px solid gray;
+}

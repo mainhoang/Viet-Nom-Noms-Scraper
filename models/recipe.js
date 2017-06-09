@@ -1,4 +1,5 @@
 var mongoose = require('mongoose');
+var Schema = mongoose.Schema;
 
 var recipeSchema = mongoose.Schema({
 	title: {
@@ -6,7 +7,15 @@ var recipeSchema = mongoose.Schema({
 	},
 	link: {
 		type: String
-	}
+	},
+	saved: {
+		type: Boolean,
+		default: false
+	},
+	comment: {
+    	type: Schema.Types.ObjectId,
+    	ref: "Comment"
+  	}
 
 });
 
