@@ -9,16 +9,19 @@
             </div>
             <div class="modal-body">
 				<div>
-
+                    {{#each comments}}
 					<p id="comment-display">
-						hello
+						{{this.comment}}
 					</p>
+                    {{/each}}
 				</div>
                	<input id="comment-input" />
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary">Save changes</button>
+                <form class="save-form" method="POST">
+                    <button type="submit" class="save-comment btn btn-primary">Save changes</button>
+                </form>
             </div>
         </div>
     </div>
@@ -40,8 +43,9 @@
                 {{!-- <form class="pull-right"> --}}
                     
                 {{!-- </form> --}}
+
                 <form class="pull-right" action="/update/{{this.id}}" method="POST">
-                	<button class="comment-btn btn btn-default btn-danger pull-right" data-id="{{this.id}}" data-toggle="modal" data-target="#comment-modal" type="button">Comments</button>
+                	<button class="comment-btn btn btn-default btn-danger pull-right" data-id={{this.id}} data-toggle="modal" data-target="#comment-modal" type="button">Comments</button>
                     <button class="btn btn-default" type="submit">Delete</button>
                 </form>
                 {{/if}} {{!-- <a class="btn btn-primary btn-lg save-btn pull-right" data-id={{this.id}} href="/update/{{this.id}}">Save to Favorites</a> --}}
